@@ -1,0 +1,2464 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Genba 5R — Check Patrol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: #f5f4f0;
+  color: #0f172a;
+  line-height: 1.5;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior-y: contain;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; border: none; background: none; cursor: pointer; color: inherit; }
+input, select, textarea { font: inherit; color: inherit; }
+h1, h2, h3, h4 { font-family: 'Bricolage Grotesque', serif; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; }
+.mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "ss01", "cv01"; }
+
+/* ===== LAYOUT ===== */
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f4f0;
+  position: relative;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #0f172a;
+  color: #f5f4f0;
+  padding: env(safe-area-inset-top) 0 0 0;
+}
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  min-height: 60px;
+}
+.topbar-title {
+  font-family: 'Bricolage Grotesque', serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar-back, .topbar-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: #f5f4f0;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.topbar-back:hover, .topbar-action:hover { background: rgba(255,255,255,0.1); }
+.topbar-action.with-label {
+  width: auto;
+  padding: 0 12px;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.main {
+  flex: 1;
+  padding: 20px 18px calc(24px + env(safe-area-inset-bottom)) 18px;
+}
+.main.no-pad { padding: 0; }
+
+/* ===== HERO / HEADING ===== */
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.hero-title {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #0f172a;
+}
+.hero-sub {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+.hero-roman {
+  font-family: 'Bricolage Grotesque', serif;
+  font-weight: 300;
+  font-size: 72px;
+  line-height: 0.8;
+  color: #e2e0d8;
+  user-select: none;
+}
+
+/* ===== CARDS ===== */
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e8e5db;
+  overflow: hidden;
+}
+.card-clickable {
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.card-clickable:hover { border-color: #cbd5e1; }
+.card-clickable:active { transform: scale(0.985); }
+.card-padded { padding: 18px; }
+
+/* ===== AREA GRID (home / new-genba) ===== */
+.area-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+.area-tile {
+  background: #ffffff;
+  border: 1px solid #e8e5db;
+  border-radius: 14px;
+  padding: 18px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.area-tile:hover { border-color: #cbd5e1; transform: translateY(-1px); }
+.area-tile:active { transform: scale(0.98); }
+.area-tile-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.area-tile-name {
+  font-family: 'Bricolage Grotesque', serif;
+  font-size: 19px;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  margin-top: 8px;
+  line-height: 1.15;
+}
+.area-tile-count {
+  margin-top: auto;
+  font-size: 12px;
+  color: #64748b;
+}
+.area-tile.done {
+  background: #f0ede2;
+  border-color: #d6d2c4;
+}
+.area-tile.done .area-tile-name { color: #475569; }
+.area-tile.done::after {
+  content: "✓";
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-family: 'Bricolage Grotesque';
+  font-weight: 700;
+  color: #16a34a;
+  font-size: 16px;
+}
+
+/* ===== DASHBOARD STATS ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.stat-box {
+  background: #ffffff;
+  border: 1px solid #e8e5db;
+  border-radius: 12px;
+  padding: 14px 12px;
+}
+.stat-box.highlight { background: #0f172a; border-color: #0f172a; color: #f5f4f0; }
+.stat-box.highlight .stat-label { color: #94a3b8; }
+.stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.stat-value {
+  font-family: 'Bricolage Grotesque', serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-top: 4px;
+  letter-spacing: -0.02em;
+}
+
+/* ===== BUTTON ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.15s;
+  min-height: 46px;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: #0f172a;
+  color: #f5f4f0;
+}
+.btn-primary:hover { background: #1e293b; }
+.btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+.btn-accent {
+  background: #f97316;
+  color: #ffffff;
+}
+.btn-accent:hover { background: #ea580c; }
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid #0f172a;
+  color: #0f172a;
+}
+.btn-outline:hover { background: #0f172a; color: #f5f4f0; }
+.btn-ghost {
+  background: transparent;
+  color: #0f172a;
+}
+.btn-ghost:hover { background: #e8e5db; }
+.btn-danger {
+  background: #fff;
+  color: #dc2626;
+  border: 1.5px solid #fecaca;
+}
+.btn-danger:hover { background: #fef2f2; }
+.btn-block { width: 100%; }
+.btn-sm { padding: 8px 14px; font-size: 13px; min-height: 36px; }
+
+/* ===== QUICK ACTIONS (home) ===== */
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.qa-btn {
+  background: #ffffff;
+  border: 1px solid #e8e5db;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 92px;
+}
+.qa-btn:hover { border-color: #cbd5e1; }
+.qa-btn.primary { background: #0f172a; border-color: #0f172a; color: #f5f4f0; }
+.qa-btn .qa-icon {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  background: #fff4ec;
+  color: #f97316;
+}
+.qa-btn.primary .qa-icon { background: #f97316; color: #fff; }
+.qa-btn .qa-label {
+  font-family: 'Bricolage Grotesque', serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+.qa-btn .qa-desc { font-size: 11px; color: #64748b; }
+.qa-btn.primary .qa-desc { color: #cbd5e1; }
+
+/* ===== SECTION HEADING ===== */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 22px 0 10px 0;
+}
+.section-head h2 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.section-head .link {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f97316;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ===== 5R CATEGORY COLORS ===== */
+.cat-I  { --cat-bg: #fef3c7; --cat-fg: #92400e; } /* MANAJEMEN - amber */
+.cat-II { --cat-bg: #dbeafe; --cat-fg: #1e40af; } /* RINGKAS - blue */
+.cat-III{ --cat-bg: #d1fae5; --cat-fg: #065f46; } /* RAPI - green */
+.cat-IV { --cat-bg: #ede9fe; --cat-fg: #5b21b6; } /* RESIK - purple */
+.cat-V  { --cat-bg: #ffe4e6; --cat-fg: #9f1239; } /* RAWAT - rose */
+.cat-VI { --cat-bg: #fed7aa; --cat-fg: #7c2d12; } /* RAJIN - orange */
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--cat-bg, #f1f5f9);
+  color: var(--cat-fg, #475569);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ===== CRITERIA CARD ===== */
+.crit-group {
+  margin-bottom: 24px;
+}
+.crit-group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  background: rgba(15,23,42,0.04);
+  border-radius: 10px;
+}
+.crit-group-head .roman {
+  font-family: 'Bricolage Grotesque', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.crit-group-head .name {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: #0f172a;
+  flex: 1;
+}
+.crit-group-head .count {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.crit-card {
+  background: #fff;
+  border: 1px solid #e8e5db;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.crit-card.scored { border-color: #cbd5e1; background: #fafaf7; }
+.crit-card.has-finding { border-left: 3px solid #dc2626; }
+.crit-head {
+  padding: 14px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.crit-head-main { flex: 1; min-width: 0; }
+.crit-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.crit-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.02em;
+}
+.crit-bobot {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #94a3b8;
+}
+.crit-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #0f172a;
+  line-height: 1.3;
+}
+.crit-score-badge {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bricolage Grotesque', serif;
+  font-weight: 700;
+  font-size: 18px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+.crit-score-badge.set { color: #fff; }
+.crit-score-badge.set.s4 { background: #16a34a; }
+.crit-score-badge.set.s3 { background: #65a30d; }
+.crit-score-badge.set.s2 { background: #eab308; }
+.crit-score-badge.set.s1 { background: #ea580c; }
+.crit-score-badge.set.s0 { background: #dc2626; }
+
+.crit-expand {
+  border-top: 1px solid #e8e5db;
+  padding: 14px 16px;
+  background: #fafaf7;
+  display: none;
+}
+.crit-card.open .crit-expand { display: block; }
+.crit-desc {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.55;
+  white-space: pre-line;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e8e5db;
+}
+
+.score-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.score-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1.5px solid #e8e5db;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  width: 100%;
+}
+.score-opt:hover { border-color: #cbd5e1; }
+.score-opt.selected { background: #0f172a; color: #f5f4f0; border-color: #0f172a; }
+.score-opt-nilai {
+  font-family: 'Bricolage Grotesque', serif;
+  font-weight: 700;
+  font-size: 16px;
+  min-width: 22px;
+  flex-shrink: 0;
+}
+.score-opt-text { font-size: 12.5px; line-height: 1.4; flex: 1; }
+
+.crit-actions-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.finding-preview-mini {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== FORM ===== */
+.form-group {
+  margin-bottom: 16px;
+}
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+.form-label .req { color: #dc2626; }
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1.5px solid #e8e5db;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #0f172a;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.form-textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none;
+  border-color: #0f172a;
+}
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+/* ===== PHOTO ===== */
+.photo-upload {
+  background: #fff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.photo-upload:hover { border-color: #f97316; background: #fff7ed; }
+.photo-upload-icon { color: #64748b; }
+.photo-upload-text { font-weight: 600; font-size: 14px; color: #0f172a; }
+.photo-upload-hint { font-size: 11px; color: #64748b; }
+.photo-preview-wrapper {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  background: #0f172a;
+}
+.photo-preview-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.photo-preview-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ===== FINDING CARD ===== */
+.finding-card {
+  background: #fff;
+  border: 1px solid #e8e5db;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.finding-card:hover { border-color: #cbd5e1; }
+.finding-card-img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #f1f5f9;
+  object-fit: cover;
+  display: block;
+}
+.finding-card-img.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 12px;
+}
+.finding-card-body { padding: 14px; }
+.finding-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.meta-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.finding-card-title {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.3;
+  margin-bottom: 6px;
+  color: #0f172a;
+}
+.finding-card-desc {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.finding-card-foot {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px dashed #e8e5db;
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: #64748b;
+}
+.empty-icon { font-size: 40px; opacity: 0.4; margin-bottom: 12px; }
+.empty-title {
+  font-family: 'Bricolage Grotesque', serif;
+  font-size: 19px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+.empty-desc { font-size: 13px; }
+
+/* ===== TABS ===== */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: #e8e5db;
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+}
+.tab {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tab.active {
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* ===== TOAST / MESSAGES ===== */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #f5f4f0;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  max-width: calc(100% - 40px);
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-4px);
+}
+.toast.error { background: #dc2626; }
+.toast.success { background: #16a34a; }
+
+/* ===== MODAL ===== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.65);
+  z-index: 900;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(3px);
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 22px;
+}
+.modal h3 {
+  font-family: 'Bricolage Grotesque', serif;
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.modal-actions .btn { flex: 1; }
+
+/* ===== SPLASH / LOADER ===== */
+.loader {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.full-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+/* ===== SETTINGS SPECIFIC ===== */
+.setting-row {
+  padding: 16px 0;
+  border-bottom: 1px solid #e8e5db;
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-weight: 600; font-size: 14px; color: #0f172a; margin-bottom: 4px; }
+.setting-desc { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+
+.pic-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  margin: 3px 3px 3px 0;
+}
+.pic-tag button {
+  width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: #94a3b8;
+  border-radius: 50%;
+}
+.pic-tag button:hover { color: #dc2626; background: #fee2e2; }
+
+/* ===== RESPONSIVE ===== */
+@media (min-width: 520px) {
+  .area-grid { grid-template-columns: repeat(3, 1fr); }
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+  .quick-actions { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 720px) {
+  .main { padding: 28px 26px calc(40px + env(safe-area-inset-bottom)) 26px; }
+}
+
+/* ===== UTIL ===== */
+.hide { display: none !important; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 16px; }
+.mb-2 { margin-bottom: 8px; }
+.text-xs { font-size: 11px; }
+.text-sm { font-size: 13px; }
+.text-muted { color: #64748b; }
+
+.sync-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  background: #fff4ec;
+  color: #c2410c;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.sync-indicator.ok { background: #dcfce7; color: #166534; }
+.sync-dot {
+  width: 6px; height: 6px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+/* ===== PROGRESS ===== */
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #0f172a;
+  color: #f5f4f0;
+  border-radius: 12px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.progress-bar {
+  flex: 1;
+  height: 5px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #f97316;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+.progress-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Topbar -->
+  <div class="topbar" id="topbar">
+    <div class="topbar-inner">
+      <button class="topbar-back" id="backBtn" style="display:none" aria-label="Kembali">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="topbar-title" id="topbarTitle">Genba 5R</div>
+      <div class="topbar-actions" id="topbarActions"></div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main" id="main">
+    <!-- content rendered by JS -->
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- Hidden file input for photos -->
+<input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
+
+<script>
+/* ============================================================
+   GENBA 5R — Check Patrol App
+   Pure client-side PWA, connects to Google Sheets via Apps Script
+   ============================================================ */
+
+/* ---------- CRITERIA DATA (from spreadsheet) ---------- */
+const CRITERIA = [{"main_code":"I","main_name":"MANAJEMEN (SASARAN DAN PENCAPAIAN 5R)","sub_code":"1.1","sub_name":"Komitmen dan keterlibatan langsung manajemen puncak.","item_code":"1.1","item_name":"Komitmen dan keterlibatan langsung manajemen puncak.","description":"Manajemen puncak terlibat dalam :","bobot":4,"scoring":[{"nilai":4,"keterangan":"Manajemen yang terlibat hingga level Direktur/CEO dalam aktivitas genba, review dan memberikan pengarahan"},{"nilai":3,"keterangan":"Manajemen yang terlibat hingga level Direktur/CEO dalam sebagian aktivitas genba, review dan memberikan pengarahan"},{"nilai":2,"keterangan":"Manajemen yang terlibat hingga 1 level di bawah Direktur/CEO dalam semua aktivitas/sebagian aktivitas genba, review dan memberikan pengarahan"},{"nilai":1,"keterangan":"Manajemen yang terlibat hingga 2 level di bawah Direktur/CEO dalam semua aktivitas/sebagian aktivitas genba, review dan memberikan pengarahan"}],"area":"general"},{"main_code":"I","main_name":"MANAJEMEN (SASARAN DAN PENCAPAIAN 5R)","sub_code":"1.2","sub_name":"Komite/ lembaga yang mengurus  mekanisme (PDCA/ SDCA) pelaksanaan 5R.","item_code":"1.2","item_name":"Komite/ lembaga yang mengurus  mekanisme (PDCA/ SDCA) pelaksanaan 5R.","description":"1. Ada komite/ lembaga 5R","bobot":4,"scoring":[{"nilai":4,"keterangan":"4 kriteria terpenuhi"},{"nilai":3,"keterangan":"3 kriteria terpenuhi"},{"nilai":2,"keterangan":"2 kriteria terpenuhi"},{"nilai":1,"keterangan":"1 kriteria terpenuhi"}],"area":"general"},{"main_code":"I","main_name":"MANAJEMEN (SASARAN DAN PENCAPAIAN 5R)","sub_code":"1.3","sub_name":"Training 5R karyawan perusahaan yang bersangkutan.","item_code":"1.3","item_name":"Training 5R karyawan perusahaan yang bersangkutan.","description":"1. Daftar hadir","bobot":4,"scoring":[{"nilai":4,"keterangan":"Ada rencana dan pelaksanaan training 5R terhadap semua karyawan di perusahaan. Pengawas (Level Pimpinan Terendah - Tertinggi) keatas telah 100%, Non Pengawas 95% keatas telah mengikuti pelatihan 5R."},{"nilai":3,"keterangan":"Ada rencana dan pelaksanaan training 5R terhadap semua karyawan di perusahaan. Pengawas (Level Pimpinan Terendah - Tertinggi) ke atas telah 100% sedangkan Non Pengawas hanya 75-94% yang telah mengikuti pelatihan 5R."},{"nilai":2,"keterangan":"Ada rencana dan pelaksanaan training 5R terhadap semua karyawan di perusahaan. Pengawas (Level Pimpinan Terendah - Tertinggi) ke atas telah 90% keatas sedangkan Non Pengawas hanya 50-74% yang telah mengikuti pelatihan 5R."},{"nilai":1,"keterangan":"Ada rencana dan pelaksanaan training 5R terhadap semua karyawan di perusahaan. Pengawas (Level Pimpinan Terendah - Tertinggi) ke atas hanya dibawah 90% atau karyawan yang telah mengikuti pelatihan 5R hanya dibawah 50%."},{"nilai":0,"keterangan":"Belum ada rencana dan pelaksanaan training 5R terhadap semua karyawan di perusahaan."}],"area":"general"},{"main_code":"I","main_name":"MANAJEMEN (SASARAN DAN PENCAPAIAN 5R)","sub_code":"1.4","sub_name":"Ketersediaan dana untuk aktivitas dana 5R.","item_code":"1.4","item_name":"Ketersediaan dana untuk aktivitas dana 5R.","description":"Approval budget company","bobot":4,"scoring":[{"nilai":4,"keterangan":"Ada budget untuk kegiatan 5R yang dialokasikan setiap awal tahun."},{"nilai":2,"keterangan":"Tidak ada budget untuk kegiatan 5R yang dialokasikan setiap awal tahun tetapi pelaksanaannya dapat menggunakan budget dari pos yang lain."},{"nilai":0,"keterangan":"Tidak ada budget untuk kegiatan 5R yang dialokasikan setiap awal tahun."}],"area":"general"},{"main_code":"I","main_name":"MANAJEMEN (SASARAN DAN PENCAPAIAN 5R)","sub_code":"1.5","sub_name":"Hasil pencapaian pelaksanaan 5R.","item_code":"1.5","item_name":"Hasil pencapaian pelaksanaan 5R.","description":"1. Penghematan ruang minimum 25 m2","bobot":4,"scoring":[{"nilai":4,"keterangan":"3 kriteria terpenuhi"},{"nilai":3,"keterangan":"2 kriteria terpenuhi"},{"nilai":2,"keterangan":"1 kriteria terpenuhi"},{"nilai":1,"keterangan":"Tidak ada kriteria terpenuhi"}],"area":"general"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.1","sub_name":"Pos Security","item_code":"2.1.1","item_name":"Perlengkapan security","description":"Semua perlengkapan security dalam kondisi berfungsi dengan baik.\n1. Meja kerja\n2. Helm/ topi\n3. Pentungan/ sangkur\n4. Senter\n5. Jas hujan/ payung\n6. APAR\n7. Alat kebersihan\n8. Alat komunikasi\n9. Kunci mobil","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"100% berfungsi dengan baik"},{"nilai":3,"keterangan":">50% berfungsi dengan baik"},{"nilai":2,"keterangan":">40% berfungsi dengan baik"},{"nilai":1,"keterangan":"≤40% berfungsi dengan baik"}],"area":"pos_security"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.1","sub_name":"Pos Security","item_code":"2.1.2","item_name":"Dokumen","description":"Dokumen (buku tamu, kartu pengenal) yang ada hanya yang diperlukan (kondisi baik).","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"pos_security"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.1","sub_name":"Pos Security","item_code":"2.1.3","item_name":"Dinding/Pintu/Jendela","description":"Tidak ada benda yang tidak diperlukan di dinding/pintu/jendela.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"pos_security"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.1","sub_name":"Pos Security","item_code":"2.1.4","item_name":"Lantai","description":"Tidak ada benda yang tidak diperlukan di lantai.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"pos_security"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.1","sub_name":"Pos Security","item_code":"2.1.5","item_name":"Toilet","description":"Tidak ada barang yang tidak diperlukan di toilet.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"pos_security"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.1","sub_name":"Pos Security","item_code":"2.1.6","item_name":"Meja Kerja","description":"Tidak ada barang yang tidak diperlukan di meja kerja security","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"pos_security"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.2","sub_name":"Halaman Parkir","item_code":"2.2","item_name":"Halaman Parkir","description":"Tidak ada barang yang tidak diperlukan di area parkir.","bobot":1,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"parkir"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.3","sub_name":"Office","item_code":"2.3.1","item_name":"Dokumen","description":"memiliki standar masa penyimpanan dan konsisten dilaksanakan.","bobot":1,"scoring":[{"nilai":4,"keterangan":"semua dokumen memiliki standar masa penyimpanan dan konsisten dilaksanakan"},{"nilai":3,"keterangan":"semua dokumen memiliki standar masa penyimpanan dan tidak konsisten dilaksanakan"},{"nilai":2,"keterangan":"sebagian dokumen memiliki standar masa penyimpanan"},{"nilai":1,"keterangan":"semmua dokumen tidak memiliki standar masa penyimpanan"}],"area":"office"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.3","sub_name":"Office","item_code":"2.3.2","item_name":"Perlengkapan kantor (Komputer, printer, fax, telp, dll)","description":"Semua perlengkapan dalam kondisi/ berfungsi dengan baik.","bobot":1,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"office"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.3","sub_name":"Office","item_code":"2.3.3","item_name":"Furniture","description":"Semua furniture dalam kondisi/ berfungsi dengan baik.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"office"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.3","sub_name":"Office","item_code":"2.3.4","item_name":"Dinding/Pintu/Jendela","description":"Tidak ada benda yang tidak diperlukan di dinding/pintu/jendela.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"office"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.3","sub_name":"Office","item_code":"2.3.5","item_name":"Lantai","description":"Tidak ada benda yang tidak diperlukan di lantai.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"office"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.4","sub_name":"Fasum (toilet/ruang makan/ruang meeting/mushola)","item_code":"2.4.1","item_name":"Dinding/Pintu/Jendela","description":"Tidak ada benda yang tidak diperlukan di dinding/pintu/jendela.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"fasum"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.4","sub_name":"Fasum (toilet/ruang makan/ruang meeting/mushola)","item_code":"2.4.2","item_name":"Lantai","description":"Tidak ada benda yang tidak diperlukan di lantai.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"fasum"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.5","sub_name":"Gudang","item_code":"2.5.1","item_name":"Stock","description":"Stock barang di gudang","bobot":4,"scoring":[{"nilai":4,"keterangan":"semua barang memiliki standar masa penyimpanan dan konsisten dilaksanakan"},{"nilai":3,"keterangan":"semua barang memiliki standar masa penyimpanan dan tidak konsisten dilaksanakan"},{"nilai":2,"keterangan":"sebagian barang memiliki standar masa penyimpanan"},{"nilai":1,"keterangan":"semmua barang tidak memiliki standar masa penyimpanan"}],"area":"gudang"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.5","sub_name":"Gudang","item_code":"2.5.2","item_name":"Perlengkapan kantor (Komputer, printer, fax, telp, dll)","description":"Semua perlengkapan dalam kondisi/ berfungsi dengan baik.","bobot":1,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"gudang"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.5","sub_name":"Gudang","item_code":"2.5.3","item_name":"Furniture","description":"Semua furniture dalam kondisi/ berfungsi dengan baik.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"gudang"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.5","sub_name":"Gudang","item_code":"2.5.4","item_name":"Dinding/Pintu/Jendela","description":"Tidak ada benda yang tidak diperlukan di dinding/pintu/jendela.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"gudang"},{"main_code":"II","main_name":"RINGKAS","sub_code":"2.5","sub_name":"Gudang","item_code":"2.5.5","item_name":"Lantai","description":"Tidak ada benda yang tidak diperlukan di lantai.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"tidak ada temuan"},{"nilai":3,"keterangan":"ada 1 temuan"},{"nilai":2,"keterangan":"ada 2 temuan"},{"nilai":1,"keterangan":"ada >2 temuan"}],"area":"gudang"},{"main_code":"III","main_name":"RAPI","sub_code":"3.1","sub_name":"Layout","item_code":"3.1","item_name":"Layout","description":"Layout area lengkap mulai dari area luar maupun dalam gedung untuk semua  proses utama  di dalam area audit termasuk jalur evakuasi dan dipasang di tempat yang mudah dilihat setiap orang.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"Penjelasan kriteria terpenuhi."},{"nilai":3,"keterangan":"Layout  hanya ada untuk semua  proses utama  di dalam gedung termasuk jalur evakuasi dan dipasang di tempat yang mudah dilihat setiap orang."},{"nilai":2,"keterangan":"Layout  hanya ada untuk semua  proses utama  di dalam gedung tetapi tidak ada jalur evakuasi dan dipasang di tempat yang mudah dilihat setiap orang."},{"nilai":1,"keterangan":"Layout  hanya ada untuk semua  proses utama  di dalam gedung tetapi tidak ada jalur evakuasi tetapi tidak dipasang di tempat yang mudah dilihat setiap orang."},{"nilai":0,"keterangan":"Tidak ada layout"}],"area":"general"},{"main_code":"III","main_name":"RAPI","sub_code":"3.2","sub_name":"Pos Security","item_code":"3.2.1","item_name":"Identifikasi","description":"Semua perlengkapan mempunyai tempat penyimpanan dengan papan nama tersedia dan berada pada tempatnya sebagai contoh (sesuai kebutuhan) :\n1. Dokumen\n2. Helm/ topi\n3. Pentungan/ sangkur\n4. Senter\n5. Jas hujan/ payung\n6. APAR\n7. Alat kebersihan\n8. Alat komunikasi\n9. Kunci mobil\n10. Meja kerja","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"Semua kriteria yang berlaku terpenuhi"},{"nilai":3,"keterangan":"Ada tempat penyimpanan , ada identifikasi, isi tidak sesuai"},{"nilai":2,"keterangan":"Ada tempat penyimpanan & tidak ada identifikasi"},{"nilai":0,"keterangan":"tidak ada tempat penyimpanan & tidak ada identifikasi"}],"area":"pos_security"},{"main_code":"III","main_name":"RAPI","sub_code":"3.2","sub_name":"Pos Security","item_code":"3.2.2","item_name":"Visualisasi jalan (keberadaan stratifikasi jalan).","description":"Visualisasi  jalan lengkap:\n1. arah evakuasi\n2. arah masuk & keluar \n3. arah fasum (toilet, mushola, dll)","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"2 kriteria terpenuhi"},{"nilai":2,"keterangan":"1 kriteria terpenuhi"},{"nilai":0,"keterangan":"semua kriteria tidak terpenuhi"}],"area":"pos_security"},{"main_code":"III","main_name":"RAPI","sub_code":"3.2","sub_name":"Pos Security","item_code":"3.2.3","item_name":"Instalasi Kabel listrik","description":"Instalasi kabel listrik di semua area:\n1. tertata dan tidak mempunyai potensi terjadinya accident.\n2. panel memiliki identifikasi.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":2,"keterangan":"salah satu kriteria tidak terpenuhi"},{"nilai":0,"keterangan":"semua kriteria tidak terpenuhi"}],"area":"pos_security"},{"main_code":"III","main_name":"RAPI","sub_code":"3.3","sub_name":"Area Parkir","item_code":"3.3.1","item_name":"Visualisasi","description":"Visualisasi  Area parkir lengkap:\n1. Tanda Parkir kendaraan \n2. Garis pembatas\n3. Arah parkir kendaraan \n4. Arah keluar & Masuk kendaraan","bobot":null,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"3 kriteria terpenuhi"},{"nilai":2,"keterangan":"2 kriteria terpenuhi"},{"nilai":1,"keterangan":"1 kriteria terpenuhi"}],"area":"parkir"},{"main_code":"III","main_name":"RAPI","sub_code":"3.4","sub_name":"Office","item_code":"3.4.1","item_name":"Layout","description":"Visualisasi dari layout di area kerja lengkap (di semua ruangan)","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"Penjelasan kriteria terpenuhi."},{"nilai":2,"keterangan":"Visualisasi dari layout di area kerja tidak lengkap (tidak semua barang punya tempat)"},{"nilai":1,"keterangan":"Tidak ada layout di area kerja."}],"area":"office"},{"main_code":"III","main_name":"RAPI","sub_code":"3.4","sub_name":"Office","item_code":"3.4.2","item_name":"Identifikasi vs layout","description":"Identifikasi sesuai layout.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"Penjelasan kriteria terpenuhi."},{"nilai":2,"keterangan":"Sebagian Identifikasi tidak sesuai layout"},{"nilai":1,"keterangan":"Identifikasi tidak sesuai layout."}],"area":"office"},{"main_code":"III","main_name":"RAPI","sub_code":"3.4","sub_name":"Office","item_code":"3.4.3","item_name":"Identifikasi (label) dokumen","description":"Ada Identifikasi yang meliputi :\n1. Nama dokumen\n2. Pemilik dokumen\n3. Masa penyimpanan\n4. Nomor file","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"4 kriteria terpenuhi untuk semua area"},{"nilai":3,"keterangan":"4 kriteria terpenuhi untuk sebagian area"},{"nilai":2,"keterangan":"Hanya 3 kriteria terpenuhi"},{"nilai":1,"keterangan":"< 3  kriteria terpenuhi"}],"area":"office"},{"main_code":"III","main_name":"RAPI","sub_code":"3.4","sub_name":"Office","item_code":"3.4.4","item_name":"Identifikasi ruangan","description":"Ada visualisasi Identifikasi ruangan sesuai standar yang:\n1. mudah dilihat\n2. mudah dibaca\n3. untuk semua ruangan","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"3 kriteria terpenuhi untuk semua area"},{"nilai":3,"keterangan":"3 kriteria terpenuhi untuk sebagian area"},{"nilai":2,"keterangan":"Hanya 2 kriteria terpenuhi"},{"nilai":1,"keterangan":"< 2  kriteria terpenuhi"}],"area":"office"},{"main_code":"III","main_name":"RAPI","sub_code":"3.4","sub_name":"Office","item_code":"3.4.5","item_name":"Visualisasi jalan (keberadaan stratifikasi jalan).","description":"Visualisasi  jalan lengkap:\n1. arah evakuasi/arah keluar (exit)\n2. arah fasum (toilet, mushola, dll)","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"2 kriteria terpenuhi untuk semua area"},{"nilai":3,"keterangan":"2 kriteria terpenuhi untuk sebagian area"},{"nilai":2,"keterangan":"Hanya 1 kriteria terpenuhi"},{"nilai":1,"keterangan":"Tidak ada yang terpenuhi"}],"area":"office"},{"main_code":"III","main_name":"RAPI","sub_code":"3.4","sub_name":"Office","item_code":"3.4.6","item_name":"Instalasi Kabel listrik","description":"Instalasi kabel listrik di semua area:\n1. tertata dan tidak mempunyai potensi terjadinya accident.\n2. panel memiliki identifikasi.","bobot":0.5,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi untuk semua area"},{"nilai":2,"keterangan":"Semua kriteria terpenuhi untuk sebagian area"},{"nilai":1,"keterangan":"<2  kriteria terpenuhi"}],"area":"office"},{"main_code":"III","main_name":"RAPI","sub_code":"3.5","sub_name":"Fasum","item_code":"3.5.1","item_name":"Identifikasi","description":"Identifikasi lengkap:","bobot":null,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi untuk semua area"},{"nilai":2,"keterangan":"Semua kriteria terpenuhi untuk sebagian area"},{"nilai":1,"keterangan":"Tidak ada kriteria terpenuhi"}],"area":"fasum"},{"main_code":"III","main_name":"RAPI","sub_code":"3.6","sub_name":"Gudang","item_code":"3.6.1","item_name":"Layout","description":"Visualisasi dari layout di area kerja lengkap (semua barang ada tempatnya)","bobot":1,"scoring":[{"nilai":4,"keterangan":"Penjelasan kriteria terpenuhi."},{"nilai":2,"keterangan":"Visualisasi dari layout di area kerja tidak lengkap (tidak semua barang punya tempat)"},{"nilai":1,"keterangan":"Tidak ada layout di area kerja."}],"area":"gudang"},{"main_code":"III","main_name":"RAPI","sub_code":"3.6","sub_name":"Gudang","item_code":"3.6.2","item_name":"Identifikasi vs layout","description":"Identifikasi sesuai layout.","bobot":1,"scoring":[{"nilai":4,"keterangan":"Penjelasan kriteria terpenuhi."},{"nilai":2,"keterangan":"Sebagian Identifikasi tidak sesuai layout"},{"nilai":1,"keterangan":"Identifikasi tidak sesuai layout."}],"area":"gudang"},{"main_code":"III","main_name":"RAPI","sub_code":"3.6","sub_name":"Gudang","item_code":"3.6.3","item_name":"Identifikasi barang","description":"Ada Identifikasi yang :\n1.  sesuai barang/ jenis\n2.  mudah dilihat\n3. mudah dibaca\n4. untuk semua barang.","bobot":2,"scoring":[{"nilai":4,"keterangan":"4 kriteria terpenuhi untuk semua area"},{"nilai":3,"keterangan":"4 kriteria terpenuhi untuk sebagian area"},{"nilai":2,"keterangan":"Hanya 3 kriteria terpenuhi"},{"nilai":1,"keterangan":"< 3  kriteria terpenuhi"}],"area":"gudang"},{"main_code":"III","main_name":"RAPI","sub_code":"3.6","sub_name":"Gudang","item_code":"3.6.4","item_name":"Garis pembatas","description":"Ada garis pembatas lengkap (jalan, barang jadi) dan semua penempatan tidak melewati garis.","bobot":2,"scoring":[{"nilai":4,"keterangan":"Penjelasan kriteria terpenuhi."},{"nilai":3,"keterangan":"Garis batas lengkap tapi ada penempatan barang yang melewati garis"},{"nilai":2,"keterangan":"Garis pembatas tidak lengkap (jalan, benda kerja) dan semua penempatan barang yang ada batasnya tidak melewati garis."},{"nilai":1,"keterangan":"Garis pembatas tidak lengkap (jalan, benda kerja) dan ada penempatan barang yang melewati garis."}],"area":"gudang"},{"main_code":"III","main_name":"RAPI","sub_code":"3.6","sub_name":"Gudang","item_code":"3.6.5","item_name":"Visualisasi barang","description":"Ada Visualisasi :\n1. standard min/max  \n2. sistem FIFO lengkap.","bobot":2,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi."},{"nilai":2,"keterangan":"Salah satu kriteria terpenuhi."},{"nilai":1,"keterangan":"Tidak ada kriteria terpenuhi"}],"area":"gudang"},{"main_code":"III","main_name":"RAPI","sub_code":"3.6","sub_name":"Gudang","item_code":"3.6.6","item_name":"Visualisasi jalan (keberadaan stratifikasi jalan).","description":"Visualisasi jalan lengkap:\n1. untuk pejalan kaki\n2. untuk alat angkut\n3. rambu lalu lintas (contoh: arah jalan, kecepatan max, dll)","bobot":2,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"Dua kriteria terpenuhi"},{"nilai":2,"keterangan":"Satu kriteria terpenuhi"},{"nilai":1,"keterangan":"Tidak ada kriteria terpenuhi"}],"area":"gudang"},{"main_code":"III","main_name":"RAPI","sub_code":"3.6","sub_name":"Gudang","item_code":"3.6.7","item_name":"Instalasi Kabel listrik","description":"Instalasi kabel listrik di semua area:\n1. tertata dan tidak mempunyai potensi terjadinya accident.\n2. panel memiliki identifikasi.","bobot":2,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi untuk semua area"},{"nilai":2,"keterangan":"Semua kriteria terpenuhi untuk sebagian area"},{"nilai":1,"keterangan":"<2  kriteria terpenuhi"}],"area":"gudang"},{"main_code":"III","main_name":"RAPI","sub_code":"3.6","sub_name":"Gudang","item_code":"3.6.8","item_name":"Instalasi pipa","description":"Instalasi perpipaan:\n1. tertata dan tidak mempunyai potensi terjadinya accident.\n2. diberikan warna berbeda untuk semua peruntukkan berbeda.","bobot":1,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi untuk semua area"},{"nilai":2,"keterangan":"Semua kriteria terpenuhi untuk sebagian area"},{"nilai":1,"keterangan":"<2  kriteria terpenuhi"}],"area":"gudang"},{"main_code":"IV","main_name":"RESIK","sub_code":"4.1","sub_name":"Open Area","item_code":"4.1.1","item_name":"Aktivitas resik","description":"Aktivitas resik lengkap:\n1. Ada jadwal harian\n2. Ada penanggung jawab untuk aktivitas resik harian\n3. Ada checksheet meliputi item check standar bersih\n4. Check sheet dijalankan secara konsisten","bobot":1,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"3  kriteria terpenuhi"},{"nilai":2,"keterangan":"2  kriteria terpenuhi"},{"nilai":1,"keterangan":"<2  kriteria terpenuhi"}],"area":"open_area"},{"main_code":"IV","main_name":"RESIK","sub_code":"4.1","sub_name":"Open Area","item_code":"4.1.2","item_name":"Hasil pelaksanaan resik","description":"Semua item resik sesuai standar di area :\n1. Jalan lingkungan\n2. Area parkir\n3. Halaman\n4. Tempat pembuangan sampah/ scrap\n5. Pos Security\n6. Fasum seperti toilet, ruang makan, ruang meeting dan mushola","bobot":1,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"4-5 kriteria terpenuhi"},{"nilai":2,"keterangan":"2-3 kriteria terpenuhi"},{"nilai":1,"keterangan":"<2  kriteria terpenuhi"}],"area":"open_area"},{"main_code":"IV","main_name":"RESIK","sub_code":"4.2","sub_name":"Office","item_code":"4.2.1","item_name":"Aktivitas resik","description":"Aktivitas resik lengkap:\n1. Ada jadwal harian\n2. Ada penanggung jawab untuk aktivitas resik harian\n3. Ada checksheet meliputi item check standar bersih\n4. Check sheet dijalankan secara konsisten","bobot":1,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"3  kriteria terpenuhi"},{"nilai":2,"keterangan":"2  kriteria terpenuhi"},{"nilai":1,"keterangan":"<2  kriteria terpenuhi"}],"area":"office"},{"main_code":"IV","main_name":"RESIK","sub_code":"4.2","sub_name":"Office","item_code":"4.2.2","item_name":"Hasil pelaksanaan resik","description":"Semua item resik sesuai standar:\n1. perlengkapan\n2. lantai\n3. dinding/pintu/jendela\n4. langit-langit","bobot":1,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"3  kriteria terpenuhi"},{"nilai":2,"keterangan":"2  kriteria terpenuhi"},{"nilai":1,"keterangan":"<2  kriteria terpenuhi"}],"area":"office"},{"main_code":"IV","main_name":"RESIK","sub_code":"4.3","sub_name":"Gudang","item_code":"4.3.1","item_name":"Aktivitas resik","description":"Aktivitas resik lengkap:\n1. Ada jadwal harian\n2. Ada penanggung jawab untuk aktivitas resik harian\n3. Ada checksheet meliputi item check standar bersih\n4. Check sheet dijalankan secara konsisten","bobot":6,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"3  kriteria terpenuhi"},{"nilai":2,"keterangan":"2  kriteria terpenuhi"},{"nilai":1,"keterangan":"<2  kriteria terpenuhi"}],"area":"gudang"},{"main_code":"IV","main_name":"RESIK","sub_code":"4.3","sub_name":"Gudang","item_code":"4.3.2","item_name":"Hasil pelaksanaan resik","description":"semua item resik sesuai standar:\n1. benda-benda kerja (produk) \n2. perlengkapan\n3. lantai\n4. dinding/pintu/jendela\n5. langit-langit","bobot":5,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"4 kriteria terpenuhi"},{"nilai":2,"keterangan":"2-3 kriteria terpenuhi"},{"nilai":1,"keterangan":"<2  kriteria terpenuhi"}],"area":"gudang"},{"main_code":"V","main_name":"RAWAT","sub_code":"5.1","sub_name":"Standar pelaksanaan 3R","item_code":"5.1","item_name":"Standar pelaksanaan 3R","description":"Standar-standar lengkap (SOP/IK) dan diterapkan untuk menjamin :\n1. Ringkas, \n2. Rapi \n3. Resik","bobot":3,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"Dua kriteria terpenuhi"},{"nilai":2,"keterangan":"Satu  kriteria terpenuhi"},{"nilai":1,"keterangan":"Standar ada namun bukan SOP/IK"}],"area":"general"},{"main_code":"V","main_name":"RAWAT","sub_code":"5.2","sub_name":"Standar keselamatan kerja.","item_code":"5.2","item_name":"Standar keselamatan kerja.","description":"Standar safety lengkap dan diterapkan meliputi:\n1. APAR,\n2. APD\n3. rambu-rambu safety\n4. emergency rules","bobot":3,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"3 kriteria terpenuhi"},{"nilai":2,"keterangan":"2 kriteria terpenuhi"},{"nilai":1,"keterangan":"1 kriteria terpenuhi"}],"area":"general"},{"main_code":"V","main_name":"RAWAT","sub_code":"5.3","sub_name":"Standarisasi Audit 5R","item_code":"5.3","item_name":"Standarisasi Audit 5R","description":"Ada standar (prosedur) pelaksanaan audit 5R lengkap meliputi:\n1. jadwal pelaksanaan\n2. kriteria auditor dan daftar auditor. \n3. checksheet","bobot":3,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"2 kriteria terpenuhi"},{"nilai":2,"keterangan":"1 kriteria terpenuhi"},{"nilai":1,"keterangan":"Proses audit sudah ada namun belum dibuat dalam SOP/IK"}],"area":"general"},{"main_code":"V","main_name":"RAWAT","sub_code":"5.4","sub_name":"Pelaksanaan Audit 5R","item_code":"5.4","item_name":"Pelaksanaan Audit 5R","description":"Audit dilaksanakan konsisten dengan :\n1. sesuai jadwal, \n2. bukti pelaksanaan lengkap.\n3. tindak lanjut dimonitor dan  temuan audit closed 100% sesuai duedate.","bobot":3,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"Dua kriteria terpenuhi"},{"nilai":2,"keterangan":"Satu kriteria terpenuhi"},{"nilai":1,"keterangan":"Belum ada audit"}],"area":"general"},{"main_code":"V","main_name":"RAWAT","sub_code":"5.5","sub_name":"Pakaian kerja dan atribut kerja.","item_code":"5.5","item_name":"Pakaian kerja dan atribut kerja.","description":"Kesesuaian pakaian dan atribut kerja dengan standar perusahaan.","bobot":3,"scoring":[{"nilai":4,"keterangan":"Semua karyawan mengikuti standar pakaian dan atribut kerja."},{"nilai":3,"keterangan":"Ditemukan ada karyawan yang tidak mengikuti standar pakaian atau atribut kerja."},{"nilai":2,"keterangan":"Ditemukan 1-2 karyawan tidak mengikuti standar pakaian dan atribut kerja."},{"nilai":1,"keterangan":"Ditemukanlebih dari 2 karyawan tidak mengikuti standar pakaian dan atribut kerja."}],"area":"general"},{"main_code":"VI","main_name":"RAJIN","sub_code":"6.1","sub_name":"Pelaksanaan review manajemen untuk aktivitas 5R.","item_code":"6.1","item_name":"Pelaksanaan review manajemen untuk aktivitas 5R.","description":"Pelaksanaan review konsisten:\n1. Ada jadwal review\n2. bukti pelaksanaan berupa MOM yang berisi minimal daftar peserta, catatan dan kesimpulan aktivitas 5R dan  rencana tindak lanjut. \n3. Agenda yang lengkap meliputi \n- review MOM sebelumnya\n- aktivitas audit\n- pencapaian 5R.","bobot":4,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"Dua kriteria terpenuhi"},{"nilai":2,"keterangan":"Satu kriteria terpenuhi"},{"nilai":1,"keterangan":"Ada pelaksanaan review namun tidak sesuai tidak sesuai kriteria"}],"area":"general"},{"main_code":"VI","main_name":"RAJIN","sub_code":"6.2","sub_name":"Visualisasi Aktivitas 5R","item_code":"6.2","item_name":"Visualisasi Aktivitas 5R","description":"Ada visualisasi aktivitas 5R yang bisa dilihat langsung oleh semua orang.","bobot":4,"scoring":[{"nilai":4,"keterangan":"Ada visualisasi aktivitas 5R yang bisa dilihat langsung oleh semua orang."},{"nilai":2,"keterangan":"Ada visualisasi aktivitas 5R namun tidak bisa dilihat langsung oleh semua orang."},{"nilai":1,"keterangan":"Tidak ada visualisasi aktivitas 5R."}],"area":"general"},{"main_code":"VI","main_name":"RAJIN","sub_code":"6.3","sub_name":"Benchmark 5R.","item_code":"6.3","item_name":"Benchmark 5R.","description":"Ada:\n1. program & jadwal\n2. bukti pelaksanaan","bobot":3,"scoring":[{"nilai":4,"keterangan":"Ada program dan bukti pelaksanaan benchmarking 5R."},{"nilai":2,"keterangan":"Ada program tetapi belum terlaksana secara konsisten. (Ada bukti pelaksanaan benchmark sebelumnya)"},{"nilai":1,"keterangan":"Belum ada Benchmarking"}],"area":"general"},{"main_code":"VI","main_name":"RAJIN","sub_code":"6.4","sub_name":"Kampanye 5R","item_code":"6.4","item_name":"Kampanye 5R","description":"Ada:\n1. Artikel 5R\n2. Spanduk/ Poster\n3. ceremony regular\n4. campaign lainnya","bobot":4,"scoring":[{"nilai":4,"keterangan":"Semua kriteria terpenuhi"},{"nilai":3,"keterangan":"3 kriteria terpenuhi"},{"nilai":2,"keterangan":"2 kriteria terpenuhi"},{"nilai":1,"keterangan":"<2 kriteria terpenuhi"}],"area":"general"}];
+
+/* ---------- AREA DEFINITIONS ---------- */
+const AREAS = [
+  { id: 'pos_security', name: 'Pos Security',   desc: 'Area pos keamanan',                        code: '01' },
+  { id: 'parkir',       name: 'Halaman Parkir', desc: 'Area parkir kendaraan',                    code: '02' },
+  { id: 'office',       name: 'Office',         desc: 'Ruang kantor & area kerja',                code: '03' },
+  { id: 'fasum',        name: 'Fasum',          desc: 'Toilet, ruang makan, meeting, mushola',    code: '04' },
+  { id: 'gudang',       name: 'Gudang',         desc: 'Area penyimpanan',                         code: '05' },
+  { id: 'open_area',    name: 'Open Area',      desc: 'Jalan, halaman, pembuangan (outdoor)',     code: '06' },
+  { id: 'general',      name: 'Manajemen, Rawat & Rajin', desc: 'Aspek umum manajemen 5R',        code: '07' }
+];
+
+/* ---------- BRANCHES ---------- */
+const BRANCHES = [
+  'Daya Toyota Cakung',
+  'Daya Toyota Bekasi',
+  'Daya Daihatsu GLC',
+  'Daya Daihatsu Medan',
+  'Daya Daihatsu Langkat',
+  'Head Office'
+];
+
+/* ---------- APP STATE ---------- */
+const STORAGE_KEY = 'genba5r_v1';
+const state = {
+  config: loadConfig(),
+  screen: 'home',
+  screenHistory: [],
+  session: null,           // active genba session
+  findings: [],            // cached findings (from server + pending)
+  pendingPhotos: {},       // id -> base64
+  sessionScores: {}        // code -> nilai for current session
+};
+
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY + '_config');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return {
+    apiUrl: '',
+    auditor: '',
+    defaultBranch: '',
+    picList: ['']
+  };
+}
+function saveConfig() {
+  localStorage.setItem(STORAGE_KEY + '_config', JSON.stringify(state.config));
+}
+
+function loadPending() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY + '_pending');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return [];
+}
+function savePending(arr) {
+  localStorage.setItem(STORAGE_KEY + '_pending', JSON.stringify(arr));
+}
+
+function loadCachedFindings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY + '_findings');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return [];
+}
+function saveCachedFindings(arr) {
+  localStorage.setItem(STORAGE_KEY + '_findings', JSON.stringify(arr));
+}
+
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY + '_session');
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+function saveSession() {
+  if (state.session) localStorage.setItem(STORAGE_KEY + '_session', JSON.stringify(state.session));
+  else localStorage.removeItem(STORAGE_KEY + '_session');
+}
+
+/* ---------- HELPERS ---------- */
+function $(sel, parent = document) { return parent.querySelector(sel); }
+function $$(sel, parent = document) { return Array.from(parent.querySelectorAll(sel)); }
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function generateId() {
+  return 'F' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6).toUpperCase();
+}
+
+function fmtDate(d) {
+  const date = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(date)) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(date.getDate())}/${pad(date.getMonth()+1)}/${date.getFullYear()}`;
+}
+function fmtDateTime(d) {
+  const date = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(date)) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${fmtDate(date)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+function isoToday() {
+  return new Date().toISOString().slice(0, 10);
+}
+function daysFromNow(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function getCategoryName(mainCode) {
+  const names = { 'I': 'Manajemen', 'II': 'Ringkas', 'III': 'Rapi', 'IV': 'Resik', 'V': 'Rawat', 'VI': 'Rajin' };
+  return names[mainCode] || mainCode;
+}
+
+function getCriteriaByArea(areaId) {
+  return CRITERIA.filter(c => c.area === areaId);
+}
+
+function getCriteriaByCode(code) {
+  return CRITERIA.find(c => c.item_code === code);
+}
+
+function toast(msg, type = '') {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.className = 'toast'; }, 2800);
+}
+
+function showModal(html, onReady) {
+  $('#modal').innerHTML = html;
+  $('#modalBackdrop').classList.add('show');
+  if (onReady) onReady();
+}
+function hideModal() { $('#modalBackdrop').classList.remove('show'); }
+$('#modalBackdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'modalBackdrop') hideModal();
+});
+
+/* ---------- NAVIGATION ---------- */
+function navigate(screen, params = {}, replace = false) {
+  if (!replace && state.screen !== screen) state.screenHistory.push(state.screen);
+  state.screen = screen;
+  state.screenParams = params;
+  render();
+  window.scrollTo(0, 0);
+}
+function goBack() {
+  if (state.screenHistory.length > 0) {
+    const prev = state.screenHistory.pop();
+    state.screen = prev;
+    state.screenParams = {};
+    render();
+    window.scrollTo(0, 0);
+  } else {
+    navigate('home');
+  }
+}
+$('#backBtn').addEventListener('click', goBack);
+
+/* ---------- RENDER DISPATCH ---------- */
+function render() {
+  const main = $('#main');
+  main.classList.remove('no-pad');
+  $('#topbarActions').innerHTML = '';
+  $('#backBtn').style.display = state.screen === 'home' ? 'none' : 'inline-flex';
+
+  switch (state.screen) {
+    case 'home':          renderHome(); break;
+    case 'new-genba':     renderNewGenba(); break;
+    case 'genba-area':    renderGenbaArea(); break;
+    case 'finding-form':  renderFindingForm(); break;
+    case 'findings':      renderFindings(); break;
+    case 'finding-detail':renderFindingDetail(); break;
+    case 'settings':      renderSettings(); break;
+    case 'session-summary': renderSessionSummary(); break;
+    default: renderHome();
+  }
+}
+
+/* ==============================================================
+   SCREEN: HOME
+   ============================================================== */
+function renderHome() {
+  $('#topbarTitle').textContent = 'Genba 5R';
+  $('#topbarActions').innerHTML = `
+    <button class="topbar-action" id="settingsBtn" aria-label="Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  `;
+  $('#settingsBtn').addEventListener('click', () => navigate('settings'));
+
+  const pending = loadPending();
+  const cached = loadCachedFindings();
+  const activeFindings = cached.filter(f => f.status === 'Open');
+  const myFindings = state.config.auditor ? activeFindings.filter(f => f.auditor === state.config.auditor) : activeFindings;
+
+  const hasActiveSession = !!state.session;
+
+  const main = $('#main');
+  main.innerHTML = `
+    <div class="hero">
+      <div>
+        <div class="hero-title">Genba 5R</div>
+        <div class="hero-sub">Check Patrol ${state.config.auditor ? '· ' + esc(state.config.auditor) : ''}</div>
+      </div>
+      <div class="hero-roman">5R</div>
+    </div>
+
+    ${!state.config.apiUrl ? `
+      <div class="card card-padded" style="background:#fff4ec;border-color:#fed7aa;margin-bottom:18px">
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="color:#ea580c;flex-shrink:0">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div style="flex:1">
+            <div style="font-weight:600;margin-bottom:2px">Setup diperlukan</div>
+            <div class="text-sm text-muted">Hubungkan aplikasi ke Google Spreadsheet Anda terlebih dahulu.</div>
+            <button class="btn btn-outline btn-sm mt-3" onclick="navigate('settings')">Buka Setting</button>
+          </div>
+        </div>
+      </div>
+    ` : ''}
+
+    <div class="stats-row">
+      <div class="stat-box highlight">
+        <div class="stat-label">Temuan Aktif</div>
+        <div class="stat-value">${activeFindings.length}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Milik Saya</div>
+        <div class="stat-value">${myFindings.length}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Belum Sync</div>
+        <div class="stat-value" style="${pending.length ? 'color:#ea580c' : ''}">${pending.length}</div>
+      </div>
+    </div>
+
+    <div class="quick-actions">
+      <button class="qa-btn primary" onclick="startNewGenba()">
+        <div class="qa-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div class="qa-label">${hasActiveSession ? 'Lanjutkan Genba' : 'Mulai Genba'}</div>
+        <div class="qa-desc">${hasActiveSession ? esc(state.session.cabang) : 'Check patrol baru'}</div>
+      </button>
+      <button class="qa-btn" onclick="navigate('findings')">
+        <div class="qa-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="qa-label">Daftar Temuan</div>
+        <div class="qa-desc">${activeFindings.length} aktif</div>
+      </button>
+    </div>
+
+    ${pending.length ? `
+      <div class="card card-padded" style="background:#fff4ec;border-color:#fed7aa;margin-bottom:18px">
+        <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+          <div>
+            <div style="font-weight:600;font-size:14px">${pending.length} temuan belum ter-sync</div>
+            <div class="text-sm text-muted">Klik untuk upload ke spreadsheet</div>
+          </div>
+          <button class="btn btn-accent btn-sm" onclick="syncAllPending()">
+            <span id="syncSpin"></span> Sync Sekarang
+          </button>
+        </div>
+      </div>
+    ` : ''}
+
+    <div class="section-head">
+      <h2>Aktivitas Terakhir</h2>
+      ${activeFindings.length > 0 ? `<span class="link" onclick="navigate('findings')">Lihat Semua →</span>` : ''}
+    </div>
+    ${activeFindings.length === 0 ? `
+      <div class="empty" style="padding:30px 20px;background:#fff;border:1px dashed #e8e5db;border-radius:12px">
+        <div class="empty-title">Belum ada temuan aktif</div>
+        <div class="empty-desc">Mulai genba untuk mencatat temuan pertama</div>
+      </div>
+    ` : activeFindings.slice(0, 3).map(f => renderFindingCardHTML(f)).join('')}
+  `;
+}
+
+function startNewGenba() {
+  if (!state.config.apiUrl) {
+    toast('Setup API URL dulu di Setting', 'error');
+    navigate('settings');
+    return;
+  }
+  if (!state.config.auditor) {
+    toast('Isi nama auditor di Setting', 'error');
+    navigate('settings');
+    return;
+  }
+  // If active session exists, ask user
+  if (state.session) {
+    showModal(`
+      <h3>Lanjut atau Mulai Baru?</h3>
+      <p class="text-sm text-muted mb-2">Sesi genba aktif:</p>
+      <div class="card card-padded" style="background:#fafaf7">
+        <div class="text-sm"><strong>${esc(state.session.cabang)}</strong></div>
+        <div class="text-xs text-muted mt-2">Dimulai: ${fmtDateTime(state.session.startedAt)}</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal();navigate('new-genba')">Baru</button>
+        <button class="btn btn-primary" onclick="hideModal();navigate('genba-area')">Lanjut Sesi Ini</button>
+      </div>
+    `);
+  } else {
+    navigate('new-genba');
+  }
+}
+
+/* ==============================================================
+   SCREEN: NEW GENBA (pick branch)
+   ============================================================== */
+function renderNewGenba() {
+  $('#topbarTitle').textContent = 'Genba Baru';
+  const defBranch = state.config.defaultBranch || BRANCHES[0];
+  const main = $('#main');
+  main.innerHTML = `
+    <div class="hero">
+      <div>
+        <div class="hero-title">Pilih Cabang</div>
+        <div class="hero-sub">Tempat pelaksanaan genba hari ini</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Cabang <span class="req">*</span></label>
+      <select class="form-select" id="branchSelect">
+        ${BRANCHES.map(b => `<option value="${esc(b)}" ${b === defBranch ? 'selected' : ''}>${esc(b)}</option>`).join('')}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Auditor</label>
+      <input type="text" class="form-input" id="auditorInput" value="${esc(state.config.auditor)}" placeholder="Nama Anda">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tanggal</label>
+      <input type="date" class="form-input" id="dateInput" value="${isoToday()}">
+    </div>
+
+    <button class="btn btn-primary btn-block mt-4" onclick="confirmNewGenba()">Mulai Genba</button>
+  `;
+}
+
+function confirmNewGenba() {
+  const cabang = $('#branchSelect').value;
+  const auditor = $('#auditorInput').value.trim();
+  const tanggal = $('#dateInput').value;
+  if (!cabang) { toast('Pilih cabang dulu', 'error'); return; }
+  if (!auditor) { toast('Isi nama auditor', 'error'); return; }
+
+  // Save to config
+  state.config.auditor = auditor;
+  state.config.defaultBranch = cabang;
+  saveConfig();
+
+  // Create new session
+  state.session = {
+    id: generateId(),
+    cabang,
+    auditor,
+    tanggal,
+    startedAt: new Date().toISOString(),
+    areasVisited: {},  // areaId -> { completed: bool, scores: { code: nilai } }
+    currentArea: null
+  };
+  saveSession();
+  navigate('genba-area', {}, true);
+}
+
+/* ==============================================================
+   SCREEN: GENBA AREA (pick area, then show criteria per area)
+   ============================================================== */
+function renderGenbaArea() {
+  if (!state.session) { navigate('home'); return; }
+  const areaId = state.screenParams?.area || state.session.currentArea;
+  if (!areaId) {
+    renderAreaPicker();
+  } else {
+    renderAreaChecklist(areaId);
+  }
+}
+
+function renderAreaPicker() {
+  $('#topbarTitle').textContent = 'Pilih Area';
+  $('#topbarActions').innerHTML = `
+    <button class="topbar-action with-label" onclick="showSessionMenu()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    </button>
+  `;
+
+  const s = state.session;
+  const visited = s.areasVisited || {};
+
+  const main = $('#main');
+  main.innerHTML = `
+    <div class="card card-padded" style="background:#0f172a;color:#f5f4f0;margin-bottom:18px">
+      <div class="text-xs" style="color:#94a3b8;letter-spacing:0.08em;text-transform:uppercase;font-weight:600">Sesi Aktif</div>
+      <div style="font-family:'Bricolage Grotesque',serif;font-size:22px;font-weight:700;margin-top:4px">${esc(s.cabang)}</div>
+      <div class="text-sm" style="color:#94a3b8;margin-top:4px">${esc(s.auditor)} · ${fmtDate(s.tanggal)}</div>
+    </div>
+
+    <div class="section-head">
+      <h2>Pilih Area Genba</h2>
+      <span class="text-xs text-muted">${Object.keys(visited).length} / ${AREAS.length} area</span>
+    </div>
+
+    <div class="area-grid">
+      ${AREAS.map(area => {
+        const items = getCriteriaByArea(area.id);
+        const isVisited = visited[area.id]?.completed;
+        return `
+          <button class="area-tile ${isVisited ? 'done' : ''}" onclick="selectArea('${area.id}')">
+            <div>
+              <div class="area-tile-code mono">${area.code}</div>
+              <div class="area-tile-name">${esc(area.name)}</div>
+            </div>
+            <div class="area-tile-count">${items.length} kriteria${isVisited ? ' · selesai' : ''}</div>
+          </button>
+        `;
+      }).join('')}
+    </div>
+
+    <div class="mt-4" style="display:flex;gap:8px">
+      <button class="btn btn-outline btn-block" onclick="finishSession()">Selesai & Rangkuman</button>
+    </div>
+  `;
+}
+
+function showSessionMenu() {
+  showModal(`
+    <h3>Menu Sesi</h3>
+    <button class="btn btn-outline btn-block mt-3" onclick="hideModal();finishSession()">Selesai & Lihat Rangkuman</button>
+    <button class="btn btn-danger btn-block mt-2" onclick="abandonSession()">Hentikan Sesi</button>
+    <button class="btn btn-ghost btn-block mt-2" onclick="hideModal()">Batal</button>
+  `);
+}
+
+function abandonSession() {
+  if (!confirm('Yakin hentikan sesi? Temuan yang sudah disimpan tetap ada, tapi progress sesi akan hilang.')) return;
+  state.session = null;
+  saveSession();
+  hideModal();
+  navigate('home');
+}
+
+function selectArea(areaId) {
+  state.session.currentArea = areaId;
+  saveSession();
+  navigate('genba-area', { area: areaId }, true);
+}
+
+function renderAreaChecklist(areaId) {
+  const area = AREAS.find(a => a.id === areaId);
+  if (!area) { navigate('home'); return; }
+  $('#topbarTitle').textContent = area.name;
+
+  const criteria = getCriteriaByArea(areaId);
+  // Group by main category
+  const groups = {};
+  criteria.forEach(c => {
+    if (!groups[c.main_code]) groups[c.main_code] = [];
+    groups[c.main_code].push(c);
+  });
+  const orderedMainCodes = ['I', 'II', 'III', 'IV', 'V', 'VI'].filter(m => groups[m]);
+
+  const s = state.session;
+  if (!s.areasVisited[areaId]) s.areasVisited[areaId] = { completed: false, scores: {} };
+  const areaData = s.areasVisited[areaId];
+  const scoredCount = Object.keys(areaData.scores).length;
+
+  // Count findings for this area in this session
+  const pending = loadPending();
+  const cached = loadCachedFindings();
+  const areaFindings = [...pending, ...cached].filter(f => 
+    f.sessionId === s.id && f.areaId === areaId
+  );
+  const findingCodes = new Set(areaFindings.map(f => f.item_code));
+
+  const main = $('#main');
+  main.innerHTML = `
+    <div class="progress-row">
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${(scoredCount / criteria.length * 100).toFixed(0)}%"></div>
+      </div>
+      <div class="progress-text">${scoredCount}/${criteria.length}</div>
+    </div>
+
+    <div class="hero">
+      <div>
+        <div class="hero-title">${esc(area.name)}</div>
+        <div class="hero-sub">${esc(area.desc)}</div>
+      </div>
+      <div class="hero-roman">${area.code}</div>
+    </div>
+
+    ${orderedMainCodes.map(mainCode => {
+      const items = groups[mainCode];
+      const mainName = getCategoryName(mainCode);
+      return `
+        <div class="crit-group cat-${mainCode}">
+          <div class="crit-group-head">
+            <span class="roman">${mainCode}</span>
+            <span class="name">${mainName.toUpperCase()}</span>
+            <span class="count">${items.length} item</span>
+          </div>
+          ${items.map(c => renderCriterionCardHTML(c, areaData.scores[c.item_code], findingCodes.has(c.item_code))).join('')}
+        </div>
+      `;
+    }).join('')}
+
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn btn-outline btn-block" onclick="backToAreas()">← Area Lain</button>
+      <button class="btn btn-primary btn-block" onclick="completeArea('${areaId}')">Selesai Area Ini</button>
+    </div>
+  `;
+
+  // Attach click handlers to criterion cards
+  $$('.crit-head').forEach(el => {
+    el.addEventListener('click', () => {
+      const card = el.closest('.crit-card');
+      card.classList.toggle('open');
+    });
+  });
+}
+
+function renderCriterionCardHTML(c, currentScore, hasFinding) {
+  const scoreClass = currentScore !== undefined ? 'set s' + currentScore : '';
+  return `
+    <div class="crit-card ${currentScore !== undefined ? 'scored' : ''} ${hasFinding ? 'has-finding' : ''}" data-code="${c.item_code}">
+      <div class="crit-head">
+        <div class="crit-head-main">
+          <div class="crit-code-row">
+            <span class="crit-code mono">${c.item_code}</span>
+            <span class="crit-bobot">·</span>
+            <span class="crit-bobot">bobot ${c.bobot}</span>
+          </div>
+          <div class="crit-name">${esc(c.item_name || c.sub_name)}</div>
+        </div>
+        <div class="crit-score-badge ${scoreClass}">${currentScore !== undefined ? currentScore : '—'}</div>
+      </div>
+      <div class="crit-expand">
+        ${c.description ? `<div class="crit-desc">${esc(c.description)}</div>` : ''}
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#64748b;margin-bottom:8px">Pilih Nilai</div>
+        <div class="score-options">
+          ${c.scoring.map(s => `
+            <button class="score-opt ${currentScore === s.nilai ? 'selected' : ''}" onclick="setCriterionScore('${c.item_code}', ${s.nilai})">
+              <div class="score-opt-nilai">${s.nilai}</div>
+              <div class="score-opt-text">${esc(s.keterangan)}</div>
+            </button>
+          `).join('')}
+        </div>
+        <div class="crit-actions-row">
+          <button class="btn btn-accent btn-sm" onclick="openFindingForm('${c.item_code}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Tambah Temuan + Foto
+          </button>
+          ${hasFinding ? `<span class="sync-indicator" style="background:#fee2e2;color:#991b1b"><span class="sync-dot"></span>Ada temuan</span>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function setCriterionScore(code, nilai) {
+  const s = state.session;
+  const areaId = s.currentArea;
+  if (!s.areasVisited[areaId]) s.areasVisited[areaId] = { completed: false, scores: {} };
+  s.areasVisited[areaId].scores[code] = nilai;
+  saveSession();
+
+  // Re-render the specific card & progress
+  const card = document.querySelector(`.crit-card[data-code="${code}"]`);
+  if (card) {
+    const c = getCriteriaByCode(code);
+    const pending = loadPending();
+    const cached = loadCachedFindings();
+    const hasFinding = [...pending, ...cached].some(f => f.sessionId === s.id && f.item_code === code);
+    card.outerHTML = renderCriterionCardHTML(c, nilai, hasFinding);
+    // Re-bind click to the new head
+    const newCard = document.querySelector(`.crit-card[data-code="${code}"]`);
+    if (newCard) {
+      newCard.classList.add('open');
+      newCard.querySelector('.crit-head').addEventListener('click', () => newCard.classList.toggle('open'));
+    }
+  }
+
+  // Update progress bar
+  const criteria = getCriteriaByArea(areaId);
+  const scoredCount = Object.keys(s.areasVisited[areaId].scores).length;
+  const progressFill = $('.progress-fill');
+  const progressText = $('.progress-text');
+  if (progressFill) progressFill.style.width = (scoredCount / criteria.length * 100).toFixed(0) + '%';
+  if (progressText) progressText.textContent = `${scoredCount}/${criteria.length}`;
+
+  // Hint to add finding if score < 4
+  if (nilai < 4) {
+    toast(`Skor ${nilai} disimpan. Jangan lupa foto temuan →`, '');
+  } else {
+    toast(`Skor ${nilai} disimpan ✓`, 'success');
+  }
+}
+
+function backToAreas() {
+  state.session.currentArea = null;
+  saveSession();
+  navigate('genba-area', {}, true);
+}
+
+function completeArea(areaId) {
+  const s = state.session;
+  const criteria = getCriteriaByArea(areaId);
+  const scored = Object.keys(s.areasVisited[areaId]?.scores || {}).length;
+
+  const proceed = () => {
+    s.areasVisited[areaId].completed = true;
+    s.currentArea = null;
+    saveSession();
+    toast('Area diselesaikan ✓', 'success');
+    navigate('genba-area', {}, true);
+  };
+
+  if (scored < criteria.length) {
+    showModal(`
+      <h3>Belum Semua Dinilai</h3>
+      <p class="text-sm text-muted">${scored} dari ${criteria.length} kriteria sudah dinilai. Yakin selesai?</p>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="hideModal()">Lanjut Menilai</button>
+        <button class="btn btn-primary" onclick="hideModal();(${proceed.toString()})()">Selesai Saja</button>
+      </div>
+    `);
+  } else {
+    proceed();
+  }
+}
+
+function finishSession() {
+  hideModal();
+  navigate('session-summary');
+}
+
+/* ==============================================================
+   SCREEN: SESSION SUMMARY
+   ============================================================== */
+function renderSessionSummary() {
+  if (!state.session) { navigate('home'); return; }
+  $('#topbarTitle').textContent = 'Rangkuman Sesi';
+
+  const s = state.session;
+  let totalWeighted = 0, totalBobot = 0;
+  const categoryScores = {}; // mainCode -> { weighted, total }
+
+  Object.entries(s.areasVisited).forEach(([areaId, data]) => {
+    Object.entries(data.scores || {}).forEach(([code, nilai]) => {
+      const c = getCriteriaByCode(code);
+      if (!c) return;
+      const wBobot = Number(c.bobot) || 0;
+      const contrib = wBobot * (nilai / 4);  // normalized to 0-1 times bobot
+      totalWeighted += contrib;
+      totalBobot += wBobot;
+      if (!categoryScores[c.main_code]) categoryScores[c.main_code] = { weighted: 0, bobot: 0, count: 0 };
+      categoryScores[c.main_code].weighted += contrib;
+      categoryScores[c.main_code].bobot += wBobot;
+      categoryScores[c.main_code].count += 1;
+    });
+  });
+
+  const overallPct = totalBobot > 0 ? (totalWeighted / totalBobot * 100).toFixed(1) : '0.0';
+
+  const pending = loadPending();
+  const cached = loadCachedFindings();
+  const sessionFindings = [...pending, ...cached].filter(f => f.sessionId === s.id);
+  const openFindings = sessionFindings.filter(f => f.status === 'Open');
+
+  const main = $('#main');
+  main.innerHTML = `
+    <div class="hero">
+      <div>
+        <div class="hero-title">Rangkuman</div>
+        <div class="hero-sub">${esc(s.cabang)} · ${fmtDate(s.tanggal)}</div>
+      </div>
+    </div>
+
+    <div class="card card-padded" style="background:#0f172a;color:#f5f4f0;margin-bottom:16px">
+      <div class="text-xs" style="color:#94a3b8;letter-spacing:0.08em;text-transform:uppercase;font-weight:600">Skor Keseluruhan</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px">
+        <span style="font-family:'Bricolage Grotesque',serif;font-size:56px;font-weight:700;letter-spacing:-0.03em;line-height:1">${overallPct}</span>
+        <span style="font-size:20px;color:#94a3b8">%</span>
+      </div>
+      <div class="text-sm" style="color:#94a3b8;margin-top:6px">Rata-rata tertimbang semua kategori</div>
+    </div>
+
+    <div class="section-head"><h2>Skor per Kategori</h2></div>
+    <div class="card" style="overflow:hidden">
+      ${['I','II','III','IV','V','VI'].filter(m => categoryScores[m]).map(mainCode => {
+        const cs = categoryScores[mainCode];
+        const pct = cs.bobot > 0 ? (cs.weighted / cs.bobot * 100).toFixed(1) : '0.0';
+        return `
+          <div style="padding:14px 16px;border-bottom:1px solid #e8e5db;display:flex;align-items:center;gap:12px">
+            <div class="cat-${mainCode}" style="width:38px;height:38px;border-radius:10px;background:var(--cat-bg);color:var(--cat-fg);display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',serif;font-weight:700">${mainCode}</div>
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:14px">${getCategoryName(mainCode).toUpperCase()}</div>
+              <div class="text-xs text-muted">${cs.count} item dinilai</div>
+            </div>
+            <div style="font-family:'Bricolage Grotesque',serif;font-weight:700;font-size:20px">${pct}<span class="text-xs text-muted" style="font-size:11px;margin-left:2px">%</span></div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    <div class="section-head"><h2>Temuan Sesi Ini</h2></div>
+    ${sessionFindings.length === 0 ? `
+      <div class="empty" style="padding:30px 20px;background:#fff;border:1px dashed #e8e5db;border-radius:12px">
+        <div class="empty-title">Tidak ada temuan</div>
+        <div class="empty-desc">Semua kriteria sudah sesuai standar</div>
+      </div>
+    ` : `
+      <div class="text-sm text-muted mb-2">${openFindings.length} terbuka dari ${sessionFindings.length} total</div>
+      ${sessionFindings.map(f => renderFindingCardHTML(f)).join('')}
+    `}
+
+    <div style="margin-top:24px;display:flex;flex-direction:column;gap:8px">
+      ${pending.length ? `
+        <button class="btn btn-accent btn-block" onclick="syncAllPending()">Sync ${pending.length} Temuan ke Spreadsheet</button>
+      ` : ''}
+      <button class="btn btn-outline btn-block" onclick="navigate('genba-area',{},true)">Lanjut Genba (kembali ke area)</button>
+      <button class="btn btn-primary btn-block" onclick="closeSession()">Tutup Sesi</button>
+    </div>
+  `;
+}
+
+function closeSession() {
+  if (!confirm('Tutup sesi ini? Pastikan semua temuan sudah disync.')) return;
+  state.session = null;
+  saveSession();
+  toast('Sesi ditutup', 'success');
+  navigate('home');
+}
+
+/* ==============================================================
+   SCREEN: FINDING FORM (add new finding with photo)
+   ============================================================== */
+function openFindingForm(itemCode) {
+  const c = getCriteriaByCode(itemCode);
+  if (!c) return;
+  navigate('finding-form', { itemCode });
+}
+
+function renderFindingForm() {
+  const itemCode = state.screenParams?.itemCode;
+  const c = getCriteriaByCode(itemCode);
+  if (!c) { navigate('home'); return; }
+  $('#topbarTitle').textContent = 'Tambah Temuan';
+
+  const s = state.session;
+  const areaName = AREAS.find(a => a.id === c.area)?.name || '-';
+  const currentScore = s?.areasVisited[c.area]?.scores?.[itemCode];
+  const picOptions = (state.config.picList || []).filter(p => p);
+
+  const main = $('#main');
+  main.innerHTML = `
+    <div class="card card-padded" style="background:#fafaf7;margin-bottom:16px">
+      <div class="finding-card-meta">
+        <span class="meta-chip mono">${c.item_code}</span>
+        <span class="meta-chip cat-${c.main_code}" style="background:var(--cat-bg);color:var(--cat-fg)">${getCategoryName(c.main_code)}</span>
+        <span class="meta-chip">${esc(areaName)}</span>
+      </div>
+      <div style="font-weight:600;font-size:15px;margin-top:2px">${esc(c.item_name || c.sub_name)}</div>
+      ${currentScore !== undefined ? `<div class="text-xs text-muted mt-2">Skor yang diberikan: <strong>${currentScore}</strong></div>` : ''}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Foto Temuan <span class="req">*</span></label>
+      <div id="photoSlot">
+        <div class="photo-upload" id="photoBtn">
+          <svg class="photo-upload-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <div class="photo-upload-text">Ambil Foto / Pilih dari Galeri</div>
+          <div class="photo-upload-hint">Tap untuk buka kamera HP</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Deskripsi Temuan <span class="req">*</span></label>
+      <textarea class="form-textarea" id="fDesc" placeholder="Contoh: Ada kardus bekas di bawah meja, botol minum kosong, dokumen tidak ada label..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">PIC Tindak Lanjut <span class="req">*</span></label>
+      ${picOptions.length > 0 ? `
+        <select class="form-select" id="fPic">
+          <option value="">-- Pilih PIC --</option>
+          ${picOptions.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('')}
+          <option value="__manual__">Input manual...</option>
+        </select>
+        <input type="text" class="form-input hide" id="fPicManual" placeholder="Nama PIC" style="margin-top:8px">
+      ` : `
+        <input type="text" class="form-input" id="fPic" placeholder="Nama PIC">
+        <div class="text-xs text-muted" style="margin-top:6px">Tip: tambahkan daftar PIC di Setting</div>
+      `}
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Rencana Tindakan (Countermeasure)</label>
+      <textarea class="form-textarea" id="fAction" placeholder="Apa yang akan dilakukan untuk memperbaiki temuan ini..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Target Tanggal Selesai</label>
+      <input type="date" class="form-input" id="fDue" value="${daysFromNow(7)}">
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn btn-ghost btn-block" onclick="goBack()">Batal</button>
+      <button class="btn btn-primary btn-block" onclick="submitFinding('${itemCode}')">Simpan Temuan</button>
+    </div>
+  `;
+
+  // Photo handler
+  $('#photoBtn').addEventListener('click', () => $('#photoInput').click());
+
+  // PIC manual toggle
+  const picSel = $('#fPic');
+  if (picSel && picSel.tagName === 'SELECT') {
+    picSel.addEventListener('change', () => {
+      const m = $('#fPicManual');
+      if (picSel.value === '__manual__') m.classList.remove('hide');
+      else m.classList.add('hide');
+    });
+  }
+}
+
+let currentPhotoDataUrl = null;
+
+$('#photoInput').addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    const compressed = await compressImage(file, 1280, 0.85);
+    currentPhotoDataUrl = compressed;
+    const slot = $('#photoSlot');
+    slot.innerHTML = `
+      <div class="photo-preview-wrapper">
+        <img src="${compressed}" alt="Preview">
+        <div class="photo-preview-remove" onclick="clearPhoto()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm mt-2" onclick="document.getElementById('photoInput').click()">Ganti Foto</button>
+    `;
+  } catch (err) {
+    toast('Gagal baca foto: ' + err.message, 'error');
+  } finally {
+    e.target.value = ''; // reset so selecting same file again still fires change
+  }
+});
+
+function clearPhoto() {
+  currentPhotoDataUrl = null;
+  const slot = $('#photoSlot');
+  slot.innerHTML = `
+    <div class="photo-upload" id="photoBtn">
+      <svg class="photo-upload-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <div class="photo-upload-text">Ambil Foto / Pilih dari Galeri</div>
+      <div class="photo-upload-hint">Tap untuk buka kamera HP</div>
+    </div>
+  `;
+  $('#photoBtn').addEventListener('click', () => $('#photoInput').click());
+}
+
+function compressImage(file, maxW = 1280, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('invalid image'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function submitFinding(itemCode) {
+  const c = getCriteriaByCode(itemCode);
+  if (!c) return;
+  if (!currentPhotoDataUrl) { toast('Foto wajib diisi', 'error'); return; }
+  const desc = $('#fDesc').value.trim();
+  if (!desc) { toast('Isi deskripsi temuan', 'error'); return; }
+  let pic = $('#fPic').value;
+  if (pic === '__manual__') pic = $('#fPicManual').value.trim();
+  if (!pic) { toast('Isi PIC tindak lanjut', 'error'); return; }
+  const action = $('#fAction').value.trim();
+  const due = $('#fDue').value;
+
+  const s = state.session;
+  const areaName = AREAS.find(a => a.id === c.area)?.name || '';
+  const score = s?.areasVisited[c.area]?.scores?.[itemCode] ?? '';
+
+  const finding = {
+    id: generateId(),
+    sessionId: s?.id || '',
+    tanggal: s?.tanggal || isoToday(),
+    auditor: s?.auditor || state.config.auditor,
+    cabang: s?.cabang || '',
+    areaId: c.area,
+    area: areaName,
+    main_code: c.main_code,
+    kategori_5r: getCategoryName(c.main_code),
+    item_code: c.item_code,
+    item_name: c.item_name || c.sub_name,
+    deskripsi: desc,
+    skor: score,
+    pic: pic,
+    target_tanggal: due,
+    rencana_tindakan: action,
+    status: 'Open',
+    photo_before_dataurl: currentPhotoDataUrl,  // stored locally until sync
+    photo_before_url: '',  // filled after sync
+    photo_after_url: '',
+    created_at: new Date().toISOString(),
+    synced: false
+  };
+
+  // Save to pending
+  const pending = loadPending();
+  pending.push(finding);
+  savePending(pending);
+
+  toast('Temuan tersimpan lokal. Sync saat online.', 'success');
+  currentPhotoDataUrl = null;
+
+  // Save auditor to PIC list if not already
+  if (pic && state.config.picList && !state.config.picList.includes(pic)) {
+    state.config.picList = [...new Set([...state.config.picList, pic])].filter(p => p);
+    saveConfig();
+  }
+
+  // Try auto-sync
+  if (navigator.onLine && state.config.apiUrl) {
+    syncAllPending(true);
+  }
+
+  goBack();
+}
+
+/* ==============================================================
+   SCREEN: FINDINGS LIST
+   ============================================================== */
+function renderFindings() {
+  $('#topbarTitle').textContent = 'Daftar Temuan';
+  $('#topbarActions').innerHTML = `
+    <button class="topbar-action" onclick="refreshFindings()" aria-label="Refresh">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    </button>
+  `;
+
+  const tab = state.screenParams?.tab || 'open';
+  const pending = loadPending();
+  const cached = loadCachedFindings();
+  const all = [...pending, ...cached];
+
+  // Deduplicate by id (pending wins)
+  const dedup = {};
+  all.forEach(f => { if (!dedup[f.id]) dedup[f.id] = f; });
+  const list = Object.values(dedup);
+
+  const open = list.filter(f => f.status === 'Open');
+  const closed = list.filter(f => f.status === 'Closed');
+  const shown = tab === 'open' ? open : closed;
+  // Sort newest first
+  shown.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+
+  // Filter state
+  const filterBranch = state.findingsFilterBranch || '';
+  const filterArea = state.findingsFilterArea || '';
+  const filtered = shown.filter(f => {
+    if (filterBranch && f.cabang !== filterBranch) return false;
+    if (filterArea && f.areaId !== filterArea) return false;
+    return true;
+  });
+
+  const main = $('#main');
+  main.innerHTML = `
+    <div class="tabs">
+      <div class="tab ${tab === 'open' ? 'active' : ''}" onclick="navigate('findings',{tab:'open'},true)">Terbuka · ${open.length}</div>
+      <div class="tab ${tab === 'closed' ? 'active' : ''}" onclick="navigate('findings',{tab:'closed'},true)">Selesai · ${closed.length}</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <select class="form-select" id="filterBranch">
+        <option value="">Semua Cabang</option>
+        ${BRANCHES.map(b => `<option value="${esc(b)}" ${filterBranch === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
+      </select>
+      <select class="form-select" id="filterArea">
+        <option value="">Semua Area</option>
+        ${AREAS.map(a => `<option value="${esc(a.id)}" ${filterArea === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}
+      </select>
+    </div>
+
+    ${pending.length > 0 ? `
+      <div class="sync-indicator mb-2">
+        <span class="sync-dot"></span>${pending.length} belum sync
+        <button class="btn btn-accent btn-sm" style="margin-left:auto" onclick="syncAllPending()">Sync</button>
+      </div>
+    ` : ''}
+
+    ${filtered.length === 0 ? `
+      <div class="empty">
+        <div class="empty-title">Tidak ada temuan ${tab === 'open' ? 'terbuka' : 'selesai'}</div>
+        <div class="empty-desc">${tab === 'open' ? 'Semua temuan sudah tertangani' : 'Belum ada temuan yang ditutup'}</div>
+      </div>
+    ` : filtered.map(f => renderFindingCardHTML(f, true)).join('')}
+  `;
+
+  $('#filterBranch').addEventListener('change', (e) => {
+    state.findingsFilterBranch = e.target.value;
+    navigate('findings', { tab }, true);
+  });
+  $('#filterArea').addEventListener('change', (e) => {
+    state.findingsFilterArea = e.target.value;
+    navigate('findings', { tab }, true);
+  });
+}
+
+function renderFindingCardHTML(f, showFoot = false) {
+  const photo = f.photo_before_dataurl || f.photo_before_url || '';
+  const photoHtml = photo
+    ? `<img class="finding-card-img" src="${esc(photo)}" alt="">`
+    : `<div class="finding-card-img placeholder">Tanpa foto</div>`;
+  return `
+    <div class="finding-card" onclick="openFindingDetail('${f.id}')">
+      ${photoHtml}
+      <div class="finding-card-body">
+        <div class="finding-card-meta">
+          <span class="meta-chip mono">${esc(f.item_code)}</span>
+          <span class="meta-chip cat-${f.main_code}" style="background:var(--cat-bg);color:var(--cat-fg)">${esc(f.kategori_5r)}</span>
+          <span class="meta-chip">${esc(f.area)}</span>
+          ${!f.synced ? `<span class="meta-chip" style="background:#fff4ec;color:#c2410c">Belum Sync</span>` : ''}
+        </div>
+        <div class="finding-card-title">${esc(f.item_name)}</div>
+        <div class="finding-card-desc">${esc(f.deskripsi)}</div>
+        ${showFoot ? `
+          <div class="finding-card-foot">
+            <span>${esc(f.cabang)}</span>
+            <span>${f.pic ? 'PIC: ' + esc(f.pic) : ''} · ${fmtDate(f.tanggal)}</span>
+          </div>
+        ` : `
+          <div class="finding-card-foot">
+            <span>${esc(f.cabang)}</span>
+            <span>${fmtDate(f.tanggal)}</span>
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+function openFindingDetail(id) {
+  navigate('finding-detail', { id });
+}
+
+function refreshFindings() {
+  fetchFindings(true);
+}
+
+/* ==============================================================
+   SCREEN: FINDING DETAIL
+   ============================================================== */
+function renderFindingDetail() {
+  const id = state.screenParams?.id;
+  const pending = loadPending();
+  const cached = loadCachedFindings();
+  const f = [...pending, ...cached].find(x => x.id === id);
+  if (!f) {
+    $('#main').innerHTML = `<div class="empty"><div class="empty-title">Temuan tidak ditemukan</div></div>`;
+    return;
+  }
+  $('#topbarTitle').textContent = f.item_code;
+
+  const photo = f.photo_before_dataurl || f.photo_before_url || '';
+  const main = $('#main');
+  main.innerHTML = `
+    ${photo ? `<img src="${esc(photo)}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;margin-bottom:16px;background:#0f172a">` : ''}
+
+    <div class="finding-card-meta">
+      <span class="meta-chip mono">${esc(f.item_code)}</span>
+      <span class="meta-chip cat-${f.main_code}" style="background:var(--cat-bg);color:var(--cat-fg)">${esc(f.kategori_5r)}</span>
+      <span class="meta-chip">${esc(f.area)}</span>
+      <span class="meta-chip" style="background:${f.status === 'Open' ? '#fee2e2' : '#dcfce7'};color:${f.status === 'Open' ? '#991b1b' : '#166534'}">${f.status}</span>
+    </div>
+
+    <h2 style="font-size:22px;margin-top:10px;margin-bottom:12px;font-weight:700">${esc(f.item_name)}</h2>
+
+    <div class="card card-padded mb-2">
+      <div class="text-xs text-muted" style="text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">Deskripsi Temuan</div>
+      <div>${esc(f.deskripsi)}</div>
+    </div>
+
+    <div class="card card-padded mb-2">
+      <div class="text-xs text-muted" style="text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">Detail</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13px">
+        <span class="text-muted">Cabang</span><span>${esc(f.cabang)}</span>
+        <span class="text-muted">Auditor</span><span>${esc(f.auditor)}</span>
+        <span class="text-muted">Tanggal</span><span>${fmtDate(f.tanggal)}</span>
+        <span class="text-muted">Skor</span><span>${f.skor === '' ? '-' : f.skor}</span>
+        <span class="text-muted">PIC</span><span>${esc(f.pic)}</span>
+        <span class="text-muted">Target</span><span>${fmtDate(f.target_tanggal)}</span>
+      </div>
+    </div>
+
+    ${f.rencana_tindakan ? `
+      <div class="card card-padded mb-2">
+        <div class="text-xs text-muted" style="text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">Rencana Tindakan</div>
+        <div>${esc(f.rencana_tindakan)}</div>
+      </div>
+    ` : ''}
+
+    ${f.status === 'Closed' ? `
+      <div class="card card-padded mb-2" style="background:#f0fdf4;border-color:#bbf7d0">
+        <div class="text-xs" style="color:#166534;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px">Penyelesaian</div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13px">
+          <span class="text-muted">Tanggal Selesai</span><span>${fmtDate(f.tanggal_closed)}</span>
+          <span class="text-muted">Catatan</span><span>${esc(f.catatan_closing || '-')}</span>
+        </div>
+        ${f.photo_after_url ? `<img src="${esc(f.photo_after_url)}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin-top:10px">` : ''}
+      </div>
+    ` : ''}
+
+    ${f.status === 'Open' ? `
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+        <button class="btn btn-primary btn-block" onclick="openCloseForm('${f.id}')">Tandai Selesai + Foto After</button>
+        <button class="btn btn-danger btn-block" onclick="deleteFinding('${f.id}')">Hapus Temuan</button>
+      </div>
+    ` : ''}
+  `;
+}
+
+function openCloseForm(id) {
+  showModal(`
+    <h3>Tutup Temuan</h3>
+    <p class="text-sm text-muted mb-2">Upload foto perbaikan dan catatan untuk menutup temuan</p>
+
+    <div class="form-group">
+      <label class="form-label">Foto Perbaikan (After) <span class="req">*</span></label>
+      <div id="closePhotoSlot">
+        <div class="photo-upload" onclick="document.getElementById('photoInputClose').click()">
+          <svg class="photo-upload-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <div class="photo-upload-text">Ambil Foto After</div>
+        </div>
+      </div>
+      <input type="file" id="photoInputClose" accept="image/*" capture="environment" style="display:none">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Catatan Penyelesaian</label>
+      <textarea class="form-textarea" id="closeNote" placeholder="Tindakan yang sudah dilakukan..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="hideModal()">Batal</button>
+      <button class="btn btn-primary" onclick="submitClose('${id}')">Tutup Temuan</button>
+    </div>
+  `, () => {
+    $('#photoInputClose').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const compressed = await compressImage(file, 1280, 0.85);
+        closePhotoDataUrl = compressed;
+        $('#closePhotoSlot').innerHTML = `
+          <div class="photo-preview-wrapper" style="aspect-ratio:3/2">
+            <img src="${compressed}" alt="Preview">
+            <div class="photo-preview-remove" onclick="closePhotoDataUrl=null;document.getElementById('closePhotoSlot').innerHTML=document.querySelector('#closePhotoSlot').innerHTML">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+          </div>
+        `;
+      } catch(err) { toast('Gagal baca foto', 'error'); }
+    });
+  });
+}
+
+let closePhotoDataUrl = null;
+
+async function submitClose(id) {
+  if (!closePhotoDataUrl) { toast('Foto after wajib', 'error'); return; }
+  const note = $('#closeNote').value.trim();
+  
+  const modalBtn = $('.modal-actions .btn-primary');
+  modalBtn.innerHTML = '<span class="loader"></span> Menutup...';
+  modalBtn.disabled = true;
+
+  try {
+    // Call API to close finding
+    const res = await api('closeFinding', {
+      id,
+      photo_after: closePhotoDataUrl,
+      catatan_closing: note,
+      tanggal_closed: new Date().toISOString()
+    });
+    if (!res.ok) throw new Error(res.error || 'Gagal menutup');
+
+    // Update local cache
+    const cached = loadCachedFindings();
+    const idx = cached.findIndex(f => f.id === id);
+    if (idx >= 0) {
+      cached[idx].status = 'Closed';
+      cached[idx].photo_after_url = res.data?.photo_after_url || '';
+      cached[idx].catatan_closing = note;
+      cached[idx].tanggal_closed = new Date().toISOString();
+      saveCachedFindings(cached);
+    }
+
+    hideModal();
+    closePhotoDataUrl = null;
+    toast('Temuan ditutup ✓', 'success');
+    // Back to findings list
+    state.screen = 'findings';
+    state.screenParams = { tab: 'open' };
+    render();
+  } catch(e) {
+    modalBtn.innerHTML = 'Tutup Temuan';
+    modalBtn.disabled = false;
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+function deleteFinding(id) {
+  if (!confirm('Yakin hapus temuan ini? Tindakan tidak dapat di-undo.')) return;
+  // If not synced - just remove from pending
+  const pending = loadPending();
+  const inPending = pending.findIndex(f => f.id === id);
+  if (inPending >= 0) {
+    pending.splice(inPending, 1);
+    savePending(pending);
+    toast('Temuan dihapus', 'success');
+    goBack();
+    return;
+  }
+  // If synced - call API to delete
+  api('deleteFinding', { id })
+    .then(res => {
+      if (!res.ok) throw new Error(res.error || 'Gagal hapus');
+      const cached = loadCachedFindings();
+      const idx = cached.findIndex(f => f.id === id);
+      if (idx >= 0) { cached.splice(idx, 1); saveCachedFindings(cached); }
+      toast('Temuan dihapus', 'success');
+      goBack();
+    })
+    .catch(e => toast('Error: ' + e.message, 'error'));
+}
+
+/* ==============================================================
+   SCREEN: SETTINGS
+   ============================================================== */
+function renderSettings() {
+  $('#topbarTitle').textContent = 'Setting';
+  const c = state.config;
+  const main = $('#main');
+  main.innerHTML = `
+    <div class="hero">
+      <div>
+        <div class="hero-title">Setting</div>
+        <div class="hero-sub">Konfigurasi koneksi & data</div>
+      </div>
+    </div>
+
+    <div class="card card-padded mb-2">
+      <div class="setting-row" style="padding-top:0">
+        <div class="setting-label">URL Google Apps Script <span class="req">*</span></div>
+        <div class="setting-desc">URL deployment web app dari Apps Script (lihat panduan setup)</div>
+        <input type="text" class="form-input mono" id="cfgApiUrl" value="${esc(c.apiUrl)}" placeholder="https://script.google.com/macros/s/..." style="font-size:12px">
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label">Nama Auditor (Anda)</div>
+        <div class="setting-desc">Akan tercatat sebagai auditor di semua temuan</div>
+        <input type="text" class="form-input" id="cfgAuditor" value="${esc(c.auditor)}" placeholder="Nama lengkap">
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label">Cabang Default</div>
+        <div class="setting-desc">Cabang yang otomatis terpilih saat mulai genba</div>
+        <select class="form-select" id="cfgBranch">
+          <option value="">-- Tidak ada --</option>
+          ${BRANCHES.map(b => `<option value="${esc(b)}" ${c.defaultBranch === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label">Daftar PIC</div>
+        <div class="setting-desc">Nama PIC yang sering ditugaskan. Klik "×" untuk hapus.</div>
+        <div id="picTags" style="margin:6px 0 10px 0;min-height:30px">
+          ${(c.picList || []).filter(p => p).map((p, i) => `
+            <span class="pic-tag">${esc(p)}<button onclick="removePic(${i})">×</button></span>
+          `).join('')}
+        </div>
+        <div style="display:flex;gap:6px">
+          <input type="text" class="form-input" id="newPic" placeholder="Tambah nama PIC" style="flex:1">
+          <button class="btn btn-outline btn-sm" onclick="addPic()">+ Tambah</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-outline btn-block" onclick="testConnection()">Test Koneksi</button>
+      <button class="btn btn-primary btn-block" onclick="saveSettings()">Simpan</button>
+    </div>
+
+    <div class="section-head"><h2>Data Lokal</h2></div>
+    <div class="card card-padded">
+      <div style="font-size:13px;margin-bottom:10px">
+        <div>Pending sync: <strong>${loadPending().length}</strong></div>
+        <div>Cache temuan: <strong>${loadCachedFindings().length}</strong></div>
+        <div>Sesi aktif: <strong>${state.session ? 'Ya' : 'Tidak'}</strong></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="fetchFindings(true)">Refresh dari Sheet</button>
+        <button class="btn btn-danger btn-sm" onclick="clearCache()">Clear Cache</button>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;text-align:center;color:#94a3b8;font-size:11px">
+      Genba 5R · Check Patrol · v1.0
+    </div>
+  `;
+}
+
+function saveSettings() {
+  state.config.apiUrl = $('#cfgApiUrl').value.trim();
+  state.config.auditor = $('#cfgAuditor').value.trim();
+  state.config.defaultBranch = $('#cfgBranch').value;
+  saveConfig();
+  toast('Setting tersimpan ✓', 'success');
+}
+
+function addPic() {
+  const v = $('#newPic').value.trim();
+  if (!v) return;
+  state.config.picList = [...new Set([...(state.config.picList || []), v])].filter(p => p);
+  saveConfig();
+  $('#newPic').value = '';
+  renderSettings();
+}
+
+function removePic(i) {
+  state.config.picList.splice(i, 1);
+  saveConfig();
+  renderSettings();
+}
+
+async function testConnection() {
+  const url = $('#cfgApiUrl').value.trim();
+  if (!url) { toast('URL kosong', 'error'); return; }
+  state.config.apiUrl = url;
+  saveConfig();
+  toast('Menguji koneksi...', '');
+  try {
+    const res = await api('ping', {});
+    if (res.ok) toast('Koneksi OK ✓', 'success');
+    else toast('Gagal: ' + (res.error || 'unknown'), 'error');
+  } catch(e) {
+    toast('Gagal: ' + e.message, 'error');
+  }
+}
+
+function clearCache() {
+  if (!confirm('Hapus semua data lokal (cache & pending)? Temuan di Spreadsheet TIDAK akan terhapus.')) return;
+  localStorage.removeItem(STORAGE_KEY + '_findings');
+  localStorage.removeItem(STORAGE_KEY + '_pending');
+  localStorage.removeItem(STORAGE_KEY + '_session');
+  state.session = null;
+  toast('Cache dihapus', 'success');
+  renderSettings();
+}
+
+/* ==============================================================
+   API LAYER — Google Apps Script Web App
+   ============================================================== */
+async function api(action, data) {
+  if (!state.config.apiUrl) throw new Error('API URL belum diisi');
+  const body = JSON.stringify({ action, data });
+  // Apps Script web app accepts POST; use text/plain to avoid preflight CORS
+  const res = await fetch(state.config.apiUrl, {
+    method: 'POST',
+    body,
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    redirect: 'follow'
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const text = await res.text();
+  let json;
+  try { json = JSON.parse(text); } catch(e) { throw new Error('Response bukan JSON: ' + text.slice(0, 100)); }
+  return json;
+}
+
+async function syncAllPending(silent = false) {
+  const pending = loadPending();
+  if (pending.length === 0) { if (!silent) toast('Tidak ada yang perlu di-sync'); return; }
+  if (!state.config.apiUrl) { if (!silent) toast('API URL belum diisi', 'error'); return; }
+
+  if (!silent) toast(`Sync ${pending.length} temuan...`);
+  const synced = [];
+  const failed = [];
+
+  for (const f of pending) {
+    try {
+      const res = await api('createFinding', f);
+      if (res.ok) {
+        synced.push(f.id);
+        // Add to cache with returned URL
+        const cached = loadCachedFindings();
+        const existing = cached.findIndex(x => x.id === f.id);
+        const updated = { ...f, synced: true, photo_before_url: res.data?.photo_before_url || '', photo_before_dataurl: '' };
+        if (existing >= 0) cached[existing] = updated;
+        else cached.push(updated);
+        saveCachedFindings(cached);
+      } else {
+        failed.push({ id: f.id, err: res.error });
+      }
+    } catch(e) {
+      failed.push({ id: f.id, err: e.message });
+    }
+  }
+
+  // Remove synced from pending
+  const remaining = loadPending().filter(f => !synced.includes(f.id));
+  savePending(remaining);
+
+  if (failed.length === 0) {
+    if (!silent) toast(`${synced.length} temuan ter-sync ✓`, 'success');
+  } else {
+    toast(`${synced.length} sukses, ${failed.length} gagal`, 'error');
+    console.error('Sync errors:', failed);
+  }
+  render();  // refresh UI
+}
+
+async function fetchFindings(showToast = false) {
+  if (!state.config.apiUrl) return;
+  try {
+    if (showToast) toast('Memuat dari spreadsheet...');
+    const res = await api('listFindings', { branch: '', status: '' });
+    if (res.ok && Array.isArray(res.data)) {
+      saveCachedFindings(res.data);
+      if (showToast) toast(`${res.data.length} temuan dimuat`, 'success');
+      render();
+    } else if (!res.ok) {
+      if (showToast) toast('Gagal: ' + (res.error || 'unknown'), 'error');
+    }
+  } catch(e) {
+    if (showToast) toast('Gagal: ' + e.message, 'error');
+  }
+}
+
+/* ---------- Expose to global for inline onclick ---------- */
+window.navigate = navigate;
+window.startNewGenba = startNewGenba;
+window.confirmNewGenba = confirmNewGenba;
+window.selectArea = selectArea;
+window.backToAreas = backToAreas;
+window.completeArea = completeArea;
+window.setCriterionScore = setCriterionScore;
+window.openFindingForm = openFindingForm;
+window.submitFinding = submitFinding;
+window.clearPhoto = clearPhoto;
+window.openFindingDetail = openFindingDetail;
+window.refreshFindings = refreshFindings;
+window.openCloseForm = openCloseForm;
+window.submitClose = submitClose;
+window.deleteFinding = deleteFinding;
+window.finishSession = finishSession;
+window.closeSession = closeSession;
+window.abandonSession = abandonSession;
+window.showSessionMenu = showSessionMenu;
+window.hideModal = hideModal;
+window.saveSettings = saveSettings;
+window.addPic = addPic;
+window.removePic = removePic;
+window.testConnection = testConnection;
+window.clearCache = clearCache;
+window.syncAllPending = syncAllPending;
+window.fetchFindings = fetchFindings;
+
+/* ==============================================================
+   INIT
+   ============================================================== */
+function init() {
+  state.session = loadSession();
+  // Initial fetch if online and configured
+  if (state.config.apiUrl && navigator.onLine) {
+    fetchFindings(false);
+  }
+  render();
+
+  // Auto-sync when coming back online
+  window.addEventListener('online', () => {
+    if (loadPending().length > 0) syncAllPending(true);
+  });
+}
+init();
+</script>
+</body>
+</html>
+
